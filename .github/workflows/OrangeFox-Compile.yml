@@ -67,24 +67,23 @@ jobs:
       
     - name: 1. Sync OrangeFox Sources & Manifest
       run: |
-        mkdir -p ${GITHUB_WORKSPACE}/OrangeFox_sync
-        cd ${GITHUB_WORKSPACE}/OrangeFox_sync
+        cd ${GITHUB_WORKSPACE}
         git config --global user.name "${{ github.actor }}"
         git config --global user.email "${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com"
         git clone https://gitlab.com/OrangeFox/sync.git
         cd sync
-        ./orangefox_sync.sh --branch ${{ inputs.MANIFEST_BRANCH }} --path ${GITHUB_WORKSPACE}/OrangeFox
+        ./orangefox_sync.sh --branch ${{ inputs.MANIFEST_BRANCH }} --path ${GITHUB_WORKSPACE}/fox_source
 
     - name: 2. Place Device Trees and Kernel
       run: |
-        cd ${GITHUB_WORKSPACE}/OrangeFox
+        cd ${GITHUB_WORKSPACE}/fox_source
         git clone ${{ inputs.DEVICE_TREE }} -b ${{ inputs.DEVICE_TREE_BRANCH }} ./${{ inputs.DEVICE_PATH }}
         cd ${{ inputs.DEVICE_PATH }}
         echo "COMMIT_ID=$(git rev-parse HEAD)" >> $GITHUB_ENV
 
     - name: 3. Build It
       run: |
-        cd ${GITHUB_WORKSPACE}/OrangeFox
+        cd ${GITHUB_WORKSPACE}/fox_source
         set +e
         source build/envsetup.sh
         export ALLOW_MISSING_DEPENDENCIES=true
@@ -96,7 +95,7 @@ jobs:
     - name: 4. Set Release Properties
       run: |
         echo "BUILD_DATE=$(TZ=Asia/Jakarta date +%Y%m%d)" >> $GITHUB_ENV
-        cd ${GITHUB_WORKSPACE}/OrangeFox
+        cd ${GITHUB_WORKSPACE}/fox_source
         DEVICE_TREE_URL="${{ inputs.DEVICE_TREE }}"
         if [[ "${DEVICE_TREE_URL}" == *.git ]]; then
           DEVICE_TREE_URL="${DEVICE_TREE_URL%.git}"
@@ -107,8 +106,8 @@ jobs:
       uses: softprops/action-gh-release@v2
       with:
         files: |
-          OrangeFox/out/target/product/${{ inputs.DEVICE_NAME }}/OrangeFox*.img
-          OrangeFox/out/target/product/${{ inputs.DEVICE_NAME }}/OrangeFox*.zip
+          fox_source/out/target/product/${{ inputs.DEVICE_NAME }}/OrangeFox*.img
+          fox_source/out/target/product/${{ inputs.DEVICE_NAME }}/OrangeFox*.zip
         name: OrangeFox Recovery for ${{ inputs.DEVICE_NAME }} // ${{ env.BUILD_DATE }}
         tag_name: ${{ github.run_id }}
         body: |
