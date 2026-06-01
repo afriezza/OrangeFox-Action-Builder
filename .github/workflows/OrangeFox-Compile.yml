@@ -76,14 +76,14 @@ jobs:
 
     - name: 2. Place Device Trees and Kernel
       run: |
-        cd ${GITHUB_WORKSPACE}/fox_source
+        cd ${GITHUB_WORKSPACE}/fox_source/fox_*
         git clone ${{ inputs.DEVICE_TREE }} -b ${{ inputs.DEVICE_TREE_BRANCH }} ./${{ inputs.DEVICE_PATH }}
         cd ${{ inputs.DEVICE_PATH }}
         echo "COMMIT_ID=$(git rev-parse HEAD)" >> $GITHUB_ENV
 
     - name: 3. Build It
       run: |
-        cd ${GITHUB_WORKSPACE}/fox_source
+        cd ${GITHUB_WORKSPACE}/fox_source/fox_*
         set +e
         source build/envsetup.sh
         export ALLOW_MISSING_DEPENDENCIES=true
@@ -95,7 +95,7 @@ jobs:
     - name: 4. Set Release Properties
       run: |
         echo "BUILD_DATE=$(TZ=Asia/Jakarta date +%Y%m%d)" >> $GITHUB_ENV
-        cd ${GITHUB_WORKSPACE}/fox_source
+        cd ${GITHUB_WORKSPACE}/fox_source/fox_*
         DEVICE_TREE_URL="${{ inputs.DEVICE_TREE }}"
         if [[ "${DEVICE_TREE_URL}" == *.git ]]; then
           DEVICE_TREE_URL="${DEVICE_TREE_URL%.git}"
@@ -106,8 +106,8 @@ jobs:
       uses: softprops/action-gh-release@v2
       with:
         files: |
-          fox_source/out/target/product/${{ inputs.DEVICE_NAME }}/OrangeFox*.img
-          fox_source/out/target/product/${{ inputs.DEVICE_NAME }}/OrangeFox*.zip
+          fox_source/fox_*/out/target/product/${{ inputs.DEVICE_NAME }}/OrangeFox*.img
+          fox_source/fox_*/out/target/product/${{ inputs.DEVICE_NAME }}/OrangeFox*.zip
         name: OrangeFox Recovery for ${{ inputs.DEVICE_NAME }} // ${{ env.BUILD_DATE }}
         tag_name: ${{ github.run_id }}
         body: |
